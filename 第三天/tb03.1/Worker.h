@@ -22,15 +22,19 @@ private:
 	int Menu();
 	// //浏览
 	void Browse();
-	void PrintAll();
+	void PrintAll(SWorker**);
 	// //添加数据
 	void Input();
 	void Add(int n);
 	// //删除数据
 	void Delete();
 	// //查找数据
-	void Find();
+	void Search();
 	void Printone(const SWorker& data);
 	// 删除数据
 	void Modify();
+	int BrowseMenu();
+	SWorker** Sort(int n);
+	int Sortby(SWorker&,SWorker&,int n);
+	POSITION SearchbyNumb(int numb);
 };

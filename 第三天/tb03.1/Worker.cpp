@@ -33,7 +33,7 @@ int CWorker::Main()
 			Modify();
 			break;
 		case 5:
-			Find();
+			Search();
 			break;
 		default:
 			cout << "输入错误"<<endl;
@@ -64,29 +64,50 @@ int CWorker::Menu()
 // 浏览
 void CWorker::Browse()
 {
+	int n = 0;
 	cout << "你选择了\"浏览员工信息\"" << endl;
-	PrintAll();
+	while (n = BrowseMenu())
+	{
+		switch (n)
+		{
+		case 1:
+		case 2:
+		case 3:
+			PrintAll(Sort(n));
+			break;
+		default:
+			cout << "输入错误"<<endl;
+		}
+	}
+}
+
+int CWorker::BrowseMenu()
+{
+	int n = 0;
+	cout << "1、按工号浏览" << endl;
+	cout << "2、按姓名浏览" << endl;
+	cout << "3、按工资浏览" << endl;
+	cout << "0、返回主菜单" << endl;
+	cout << "请选择：";
+	cin >> n;
+	return n;
 }
 
 
-void CWorker::PrintAll()
+void CWorker::PrintAll(SWorker**pp)
 {
 
-	if (!m_list.GetCount())
+	if (!pp)
 	{
 		cout << "系统中无数据记录" << endl;
 		return;
 	}
-	POSITION pos = m_list.GetHeadPosition();
 	cout << "姓名\t" << "工号\t" << "工资" << endl << endl;
-	cout << m_list.GetHead().sName << "\t" << m_list.GetHead().nNumb << "\t" << m_list.GetHead().fSala << endl;
-	for (int i = 1; i < m_list.GetCount(); i++)
+	while(*pp)
 	{ 
-		SWorker data=m_list.GetNext(pos);
-		cout << data.sName << "\t" << data.nNumb << "\t" << data.fSala << endl;
+		cout << (*pp)->sName << "\t" << (*pp)->nNumb << "\t" << (*pp)->fSala << endl;
+		pp++;
 	}
-		
-		
 	system("pause");
 }
 
@@ -145,8 +166,8 @@ void CWorker::Delete()
 	cout << "你选择了\"删除数据\"" << endl;
 	cout << "请输入要删除的工号：" << endl;
 	cin >> n;
-	POSITION pos = m_list.FindIndex(n - 10000);
-	SWorker data = m_list.GetAt(pos);
+	POSITION pos=SearchbyNumb(n);
+	SWorker& data = m_list.GetAt(pos);
 	Printone(data);
 	cout << "确定要删除这条数据吗?(Y/N)" << endl;
 	if (toupper(_getch()) == 'Y')
@@ -161,13 +182,14 @@ void CWorker::Delete()
 
 
 //查找数据
-void CWorker::Find()
+void CWorker::Search()
 {
-	SWorker data = { 0 };
+	int numb = 0;
 	cout << "你选择了\"查找数据\"" << endl;
 	cout << "请输入工号：";
-	cin >> data.nNumb;
-	data=m_list.GetAt(m_list.FindIndex(data.nNumb-10000));
+	cin >> numb;
+	POSITION pos =SearchbyNumb(numb) ;
+	SWorker& data = m_list.GetAt(pos);
 	Printone(data);
 	return;
 }
@@ -186,8 +208,9 @@ void CWorker::Modify()
 	int numb = 0;
 	cout << "你选择了\"修改数据\"" << endl;
 	cout << "请输入一个工号：" << endl;
-	POSITION pos = m_list.FindIndex(numb-10000);
-	SWorker data=m_list.GetAt(pos);
+	cin >> numb;
+	POSITION pos =SearchbyNumb(numb);
+	SWorker& data = m_list.GetAt(pos);
 	Printone(data);
 	cout << "确定修改以上信息吗？(Y/N)";
 	if (toupper(_getch()) == 'Y')
@@ -198,10 +221,71 @@ void CWorker::Modify()
 		cin >> data.sName;
 		cout << "请输入新的薪资";
 		cin >> data.fSala;
-		m_list.SetAt(pos, data);
 		cout << "修改成功" << endl;
 	}
 	else
 		cout << "修改失败" << endl;
+
+}
+
+
+SWorker** CWorker::Sort(int n)
+{
+	SWorker** pp = new SWorker*[m_list.GetCount() + 1];
+	SWorker**pp1 = pp;
+	POSITION pos = m_list.GetHeadPosition();
+	if (!pos)
+		return NULL;
+	for (int i = 0; i < m_list.GetCount(); i++)
+	{
+		*pp1++ = &m_list.GetAt(pos);
+		m_list.GetNext(pos);//？？？？？
+	}
+	*pp1 = NULL;
+	pp1 = pp;
+	while (*pp1)
+	{
+		SWorker**mp = pp1;
+		SWorker**pp2 = pp1 + 1;
+		while (*pp2)
+		{
+			if (Sortby(**pp2,**mp,n)<0)
+				mp = pp2;
+			pp2++;
+		}
+		if (mp != pp1)
+		{
+			SWorker*temp = *mp;
+			*mp = *pp1;
+			*pp1 = temp;
+		}
+		pp1++;
+	}
+	return pp;
+}
+int CWorker::Sortby(SWorker&m1,SWorker&m2,int n)
+{
+	switch (n)
+	{
+	case 1:
+		return m1.nNumb - m2.nNumb;
+	case 2:
+		return strcmp(m1.sName, m2.sName);
+	case 3:
+		return m1.fSala - m2.fSala < 0 ? 1 : -1;
+
+	}
+}
+
+
+POSITION CWorker::SearchbyNumb(int numb)
+{
+	POSITION pos = m_list.GetHeadPosition();
+	for (int i = 0; i < m_list.GetCount(); i++)
+	{
+		if (m_list.GetAt(pos).nNumb == numb)
+			return pos;
+		m_list.GetNext(pos);
+	}
 
 }
