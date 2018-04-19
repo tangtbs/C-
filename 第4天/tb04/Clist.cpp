@@ -16,29 +16,29 @@ Clist::~Clist()
 
 
 //头添加
-void Clist::AddHead(DATA& data)
+void Clist::AddHead(const DATA& data)
 {
 	SNode* p = new SNode;
 	p->pNext = m_pHead;
-	p->pRevi = NULL;
+	p->pPrev = NULL;
 	p->data = data;
 	m_pHead = p;
 }
 
 
 //尾添加
-void Clist::AddTail(DATA& data)
+void Clist::AddTail(const DATA& data)
 {
 	SNode*p = new SNode;
 	if (!m_pHead)
 	{
 		p->pNext = NULL;
-		p->pRevi = NULL;
+		p->pPrev = NULL;
 		m_pHead = m_pTail = p;
 		p->data = data;
 	}
 	p->pNext = NULL;
-	p->pRevi = m_pTail;
+	p->pPrev = m_pTail;
 	m_pTail = p;
 	p->data = data;
 	
@@ -46,7 +46,7 @@ void Clist::AddTail(DATA& data)
 
 
 // 删除
-int Clist::Removeone(SNode& p)
+int Clist::RemoveAt(SNode& p)
 {
 	if (!p.data.nNumb)
 		return 1;
@@ -59,66 +59,66 @@ int Clist::Removeone(SNode& p)
 	if (p.data.nNumb == m_pHead->data.nNumb)
 	{
 		m_pHead = p.pNext;
-		p.pNext->pRevi = NULL;
+		p.pNext->pPrev = NULL;
 		delete &p;
 		return 0;
 	}
 	if (p.data.nNumb == m_pTail->data.nNumb)
 	{
-		p.pRevi->pNext = NULL;
-		m_pTail = p.pRevi;
+		p.pPrev->pNext = NULL;
+		m_pTail = p.pPrev;
 		delete &p;
 		return 0;
 	}
-	p.pRevi->pNext = p.pNext;
-	p.pNext->pRevi = p.pRevi;
+	p.pPrev->pNext = p.pNext;
+	p.pNext->pPrev = p.pPrev;
 	delete &p;
 	return 0;
 }
 
 
 // //按工号查找
-SNode& Clist::FindbyNumb(int numb)
+POSITION Clist::FindbyNumb(int numb)
 {
 	SNode* pH = m_pHead;
 	if (!pH)
 	{
 		pH = new SNode{ 0 };
-		return *pH;
+		return (POSITION)pH;
 	}
 	while (pH)
 	{
 		if (pH->data.nNumb == numb)
-			return *pH;
+			return (POSITION)pH;
 		pH = pH->pNext;
 	}
 	pH = new SNode{ 0 };
-	return *pH;
+	return (POSITION)pH;
 }
 
 
 // //按姓名查找
-SNode& Clist::FindbyName(char* name)
+POSITION Clist::FindbyName(char* name)
 {
 	SNode* pH = m_pHead;
 	if (!pH)
 	{
 		pH = new SNode{ 0 };
-		return *pH;
+		return (POSITION)pH;
 	}
 	while (pH)
 	{
 		if (!strcmp(pH->data.sName,name))
-			return *pH;
+			return (POSITION)pH;
 		pH = pH->pNext;
 	}
 	pH = new SNode{ 0 };
-	return *pH;
+	return (POSITION)pH;
 }
 
 
 //修改
-int Clist::Set(SNode& node,DATA& data)
+int Clist::Set(SNode& node,const DATA& data)
 {
 	if (node.data.nNumb == 0)
 		return 1;
@@ -128,8 +128,9 @@ int Clist::Set(SNode& node,DATA& data)
 
 
 //插入数据
-void Clist::Insert(DATA& data, SNode& node)
+void Clist::Insert(const DATA& data, POSITION pos)
 {
+	SNode& node = *(SNode*)pos;
 	if (&node == m_pHead)
 	{ 
 		AddHead(data);
@@ -144,10 +145,10 @@ void Clist::Insert(DATA& data, SNode& node)
 	else
 	{
 		SNode* p = new SNode;
-		p->pRevi = &node;
+		p->pPrev = &node;
 		p->pNext = node.pNext;
 		node.pNext = p;
-		node.pNext->pRevi = p;
+		node.pNext->pPrev = p;
 		p->data = data;
 	}
 }
