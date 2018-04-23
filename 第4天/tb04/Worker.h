@@ -6,8 +6,10 @@ using namespace std;
 struct SWorker
 {
 	int nNumb;
-	char sName[20];
-	float fSala;
+	char sName[20] = {0};
+	char sPasword[20]="000000";
+	float fSala=0;
+	bool bPower=false;
 };
 class CWorker
 {
@@ -15,9 +17,10 @@ class CWorker
 public:
 	CWorker();
 	~CWorker();
-	// 类CWorker内的Main函数
-	int Main();
+	void Into();
 private:
+	SWorker User;
+	int Main();
 	// //主菜单
 	int Menu();
 	// //浏览
@@ -37,6 +40,12 @@ private:
 	SWorker** Sort(int n);
 	int Sortby(SWorker&, SWorker&, int n);
 	POSITION SearchbyNumb(int numb);
+	POSITION SearchbyName(char* s);
+	void Save();
+	void Load();
+	void Login();
+	void CreateUser();
+	
 };
 
 

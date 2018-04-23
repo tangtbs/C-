@@ -3,6 +3,6 @@
 int main()
 {
 	CWorker list1;
-	list1.Main();
+	list1.Into();
 	return 0;
 }

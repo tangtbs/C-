@@ -112,13 +112,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Clist.h" />
-    <ClInclude Include="Manage.h" />
     <ClInclude Include="Worker.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Clist.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Manage.cpp" />
     <ClCompile Include="Worker.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
