@@ -2,6 +2,9 @@
 #include "Worker.h"
 CWorker::CWorker()
 {
+	Super.bPower = true;
+	strcpy(Super.sName,"root");
+	strcpy(Super.sPasword,"root");
 	Load();
 }
 
@@ -35,6 +38,9 @@ switch (n)
 		case 5:
 			Search();
 			break;
+		case 6:
+			Password();
+			break;
 		default:
 			cout << "输入错误" << endl;
 			break;
@@ -57,6 +63,7 @@ int CWorker::Menu()
 	cout << "\t\t\t\t\t\t3、删除员工信息" << endl;
 	cout << "\t\t\t\t\t\t4、修改员工信息" << endl;
 	cout << "\t\t\t\t\t\t5、查找员工信息" << endl;
+	cout << "\t\t\t\t\t\t6、修改登录密码" << endl;
 	cout << "\t\t\t\t\t\t0、退出管理系统" << endl;
 	cout << "请选择：";
 	cin >> n;
@@ -122,7 +129,7 @@ void CWorker::Input()
 	system("cls");
 	if (User.bPower == false)
 	{
-		cout << "你没有修改权限" << endl;
+		cout << "你没有添加权限" << endl;
 		system("pause");
 		return;
 	}
@@ -146,15 +153,11 @@ void CWorker::Add(int n)
 	SWorker data[20];
 	int i = 0;
 	cout << "请依次输入" << endl;
-	cout << "\t\t\t\t\t\t姓名\t工号\t工资\t密码" << endl << endl;
+	cout << "\t\t\t\t\t\t姓名\t工号\t工资\t权限" << endl << endl;
 	do
 	{
 		cout<<"\t\t\t\t\t\t";
-		cin >> data[i].sName >> data[i].nNumb >> data[i].fSala;
-		int j = 0;
-		for (; (data[i].sPasword[j] = _getch()) != '\r'; i++)
-			putchar('*');
-		data[i].sPasword[j] = 0;
+		cin >> data[i].sName >> data[i].nNumb >> data[i].fSala>>data[i].bPower;
 		i++;
 		cout << "是否继续（Y/N）";
 	} while (toupper(_getch()) == 'Y');
@@ -238,7 +241,6 @@ void CWorker::Printone(const SWorker& data)
 {
 	cout << "\t\t\t\t\t\t姓名\t工号\t工资" << endl << endl;
 	cout <<"\t\t\t\t\t\t"<< data.sName << "\t" << data.nNumb << "\t" << data.fSala << endl;
-	system("pause");
 }
 
 
@@ -275,14 +277,71 @@ void CWorker::Modify()
 		cin >> data.sName;
 		cout << "请输入新的薪资:";
 		cin >> data.fSala;
-		cout << "修改成功" << endl;
+		cout << "是否为该用户添加管理员权限（Y/N）？";
+		toupper(_getch()) == 'Y' ? data.bPower = true : false;
+		cout<<endl<< "修改成功" << endl;
 	}
 	else
-		cout << "修改失败" << endl;
+		cout <<endl<< "修改失败" << endl;
 	system("pause");
 
 }
 
+//修改密码
+void CWorker::Password()
+{
+	system("cls");
+	int n = 5;
+	Clist<SWorker>::SNode*p = (Clist<SWorker>::SNode*)SearchbyName(User.sName);
+	if (!p)
+	{
+		cout << "root用户密码不能在此修改" << endl;
+		system("pause");
+		return;
+	}
+	cout << "你选择了修改密码" << endl;
+	cout << "请输入原始密码:";
+	do
+	{
+		char s[20] = { 0 };
+		int i = 0;
+		for (; (s[i] = _getch()) != '\r'; i++)
+			putchar('*');
+		s[i] = 0;
+		if (!strcmp(p->data.sPasword, s))
+			break;
+		cout << endl<<"密码错误，请重新输入：";
+	} while (n--);
+	if(n<0)
+	{
+		cout << "修改失败" << endl;
+		system("pause");
+		return;
+	}
+	while(1)
+	{
+		char s1[20] = { 0 };
+		char s2[20] = { 0 };
+	    cout << endl<<"请输入新的密码:";
+		int i = 0;
+		for (; (s1[i] = _getch()) != '\r'; i++)
+			putchar('*');
+		s1[i] = 0;
+	    cout << endl<<"请再次输入密码:" ;
+		int j = 0;
+		for (; (s2[j] = _getch()) != '\r'; j++)
+			putchar('*');
+		s2[j] = 0;
+		if (!strcmp(s1, s2))
+		{
+			strcpy(p->data.sPasword, s1);
+			break;
+		}
+		cout <<endl<< "两次输入的密码不一致" << endl;
+	}
+	cout << "修改成功" << endl;
+	system("pause");
+}
 
 SWorker** CWorker::Sort(int n)
 {
@@ -407,9 +466,13 @@ void CWorker::Load()
 //登入
 void CWorker::Login()
 {
+	int n = 3;
 	char name[20] = { 0 };
 	char password[20] = { 0 };
+	Clist<SWorker>::SNode*p;
 	cout << "你选择了\"登入系统\"" << endl;
+	do{
+		
 	cout << "User:";
 	cin >>name;
 	cout << "password:";
@@ -417,27 +480,30 @@ void CWorker::Login()
 	for (; (password[i] = _getch()) != '\r'; i++)
 		putchar('*');
 	password[i] = 0;
-	Clist<SWorker>::SNode*p=(Clist<SWorker>::SNode*)SearchbyName(name);
-	if (!p)
-	{ 
-		cout <<endl<< "用户不存在"<<endl;
-		return;
-	}
-	if (strcmp(p->data.sPasword ,password))
-	{
-		cout << "密码错误"<<endl;
+	p=(Clist<SWorker>::SNode*)SearchbyName(name);
+	if (p &&!strcmp(p->data.sPasword, password)||!strcmp(name,Super.sName)&&!strcmp(password,Super.sPasword))
+	{		
+		if (p)
+			User = p->data;
+		else
+			User = Super;
+		cout<<endl << "登入成功" << endl;
 		system("pause");
+		Main();
 		return;
 	}
-	User = p->data;
-	Main();
+	if(--n>0)
+		cout <<endl<< "用户名或密码错误,"<< "您还有" << n << "次输入机会" << endl;
+	} while (n);
+	cout <<endl<< "登入系统失败" << endl;
+	system("pause");
 }
 void CWorker::Into()
 {
 	int i = 0;
-	cout << "1、用户注册" << endl;
-	cout << "2、登入系统" << endl;
-	cout << "0、退出" << endl;
+	cout << "\t\t\t\t\t\t1、用户注册" << endl;
+	cout << "\t\t\t\t\t\t2、登入系统" << endl;
+	cout << "\t\t\t\t\t\t0、退出" << endl;
 	cout << "请选择：";
 	cin  >>i;
 	switch (i)
@@ -452,18 +518,19 @@ void CWorker::Into()
 		return;
 	}
 }
-
 void CWorker::CreateUser()
 {
-	SWorker data;
-	char*s = data.sPasword;
-	char temp[20] = {0};
+	system("cls");
+	
 	cout << "你选择了\"用户注册\"" << endl;
 	while (1)
 	{
+		SWorker data;
+		char*s = data.sPasword;
+		char temp[20] = { 0 };
 		cout << "请输入用户名：";
 		cin >> data.sName;
-		if (SearchbyName(temp))
+		if (SearchbyName(data.sName)||!strcmp(data.sName,Super.sName))
 		{
 			cout << "用户名已存在,请重新输入"<<endl;
 			continue;
@@ -483,11 +550,12 @@ void CWorker::CreateUser()
 		{
 			data.nNumb = 1000 + m_list.m_nCount + 1;
 			m_list.AddTail(data);
-			cout<<endl << "注册成功";
+			cout<<endl << "注册成功"<<endl;
+			system("pause");
+			User = data;
+			Main();
 			break;
 		}
-		cout << "两次输入的密码不同" << endl;
+		cout << endl<<"两次输入的密码不同" << endl;
 	}
-	User = data;
-	Main();
 }

@@ -6,7 +6,7 @@ using namespace std;
 struct SWorker
 {
 	int nNumb;
-	char sName[20] = {0};
+	char sName[20];
 	char sPasword[20]="000000";
 	float fSala=0;
 	bool bPower=false;
@@ -19,6 +19,7 @@ public:
 	~CWorker();
 	void Into();
 private:
+	SWorker Super;
 	SWorker User;
 	int Main();
 	// //Ö÷²Ëµ¥
@@ -45,7 +46,7 @@ private:
 	void Load();
 	void Login();
 	void CreateUser();
+	void Password();
 	
 };
-
 
