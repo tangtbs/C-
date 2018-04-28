@@ -1,5 +1,6 @@
 #pragma once
 #include<iostream>
+#include<assert.h>
 template<class DATA>
 class CArray
 {
@@ -29,14 +30,22 @@ public:
 	{
 		return m_nCount - 1;
 	}
-	void InsertAt(int Index,const DATA& data);
-	void RemoveAt(int Index);
+	/*void InsertAt(int Index,const DATA& data);*/
+	void RemoveAt(int Index,int nCount=1);
 	void RemoveAll()
 	{
 		m_nCount = 0;
 	}
 	void SetAt(int nIndex,const DATA& newElement);
 	void SetSize(int nNewSize);
+	const DATA* GetData() const
+	{
+		return m_pData;
+	}
+	DATA* GetData()
+	{
+		return m_pData;
+	}
 private:
 	int m_nMaxSize;//资源个数
 	int m_nCount;//有效个数
@@ -87,42 +96,58 @@ void CArray<DATA>::SetAt(int nIndex,const DATA& newElement)
 template<class DATA>
 void CArray<DATA>::SetSize(int newSize)
 {
-	if (!newSize)
-	{
-		m_nCount= 0;
-		return;
-	}
 	if (newSize <= m_nCount)
-	{
 		m_nCount = newSize;
-		return;
-	}
+	else
+	{
 	m_nMaxSize = newSize;
 	DATA* p = new DATA[newSize];
 	memcpy(p,m_pData,m_nCount*sizeof(DATA));
+	delete []m_pData;
 	m_pData = p;
+    }
 }
 
 
+//template<class DATA>
+//void CArray<DATA>::InsertAt(int Index,const DATA& data,int nCount)
+//{
+//	if (Index < m_nCount)
+//	{
+//		if (m_nCount + nCount <= m_nMaxSize)
+//			memmove(m_pData+Index+nCount,m_pData+Index,(m_nCount-Index)*sizeof(DATA));
+//		else
+//		{
+//			m_nMaxSize = (m_nCount + nCount) * 2
+//			DATA* p = new DATA[m_nMaxSize];
+//			memcpy(p,m_pData,Index*sizeof(DATA));
+//			memcpy(p+Index+nCount,m_pData+Index,(m_nCount-Index)*sizeof(DATA));
+//			m_pData = p;
+//		}
+//		while (nCount--)
+//			m_pData[Index+nCount] = data;
+//	}
+//	else
+//	{
+//
+//
+//	}
+//
+//}
+
+
 template<class DATA>
-void CArray<DATA>::InsertAt(int Index,const DATA& data)
+void CArray<DATA>::RemoveAt(int Index,int nCount=1)
 {
-	if (m_nCount == m_nMaxSize)
+	assert(Index >= 0);
+	assert(Index<m_nMaxSize);
+	if (Index >= m_nCount)
+		return;
+	if (Index + nCount < m_nCount)
 	{
-		memcpy(m_pData + Index, m_pData + Index + 1; (m_nCount - Index-1)*sizeof(DATA));
-		m_pData[Index] = data;
-		m_nCount++;
+		memcpy(m_pData + Index, m_pData + Index + nCount, (m_nCount - Index - nCount) * sizeof(DATA));
+		m_nCount = -nCount;
 	}
-	memcpy(m_pData + Index, m_pData + Index + 1;(m_nCount-Index)*sizeof(DATA));
-	m_pData[Index] = data;
-	m_nCount++;
-}
-
-
-template<class DATA>
-void CArray<DATA>::RemoveAt(int Index)
-{
-	memcpy(m_pData+Index,m_pData+Index+1,(m_nCount-Index-1)*sizeof(DATA));
-	m_nCount--;
-
+	else
+		m_nCount = Index;
 }
