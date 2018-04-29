@@ -48,6 +48,6 @@ private:
 	void Login();
 	void CreateUser();
 	void Password();
-
+	void PasswordInput(char* password);
+	void RootPassword();
 };
-

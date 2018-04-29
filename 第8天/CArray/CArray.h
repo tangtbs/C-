@@ -6,37 +6,57 @@ class CArray
 {
 public:
 	CArray();
+	CArray(const CArray& array);
 	~CArray();
 	void Add(const DATA& data);
-	/*Append();
-	Copy();*/
-	bool IsEmpty()
+	int Append(const CArray& src);
+	void Copy(const CArray& src);
+	void FreeExtra();
+	inline bool IsEmpty()
 	{
-		return m_nCount == 0;
+		return m_nCount!=0;
 	}
-	const DATA& ElementAt(int nIndex)
+	inline const DATA& ElementAt(int nIndex)const
 	{
 		return *(m_pData + nIndex);
 	}
-	DATA& GetAt(int nIndex)
+
+	inline DATA& ElementAt(int nIndex)
 	{
-		return m_pData[nIndex];
+		return *(m_pData + nIndex);
 	}
-	int GetCount()
+
+	inline int GetSize()const
+	{
+		return m_nMaxSize;
+	}
+
+	inline int GetCount()const
 	{
 		return m_nCount;
 	}
-	int GetUpperBound()
+	inline DATA& GetAt(int nIndex)
+	{
+		return m_pData[nIndex];
+	}
+
+	inline const DATA& GetAt(int nIndex)const
+	{
+		return m_pData[nIndex];
+	}
+
+	inline int GetUpperBound()
 	{
 		return m_nCount - 1;
 	}
-	/*void InsertAt(int Index,const DATA& data);*/
+	void InsertAt(int Index,const DATA& data,int nCount=1);
 	void RemoveAt(int Index,int nCount=1);
 	void RemoveAll()
 	{
 		m_nCount = 0;
 	}
 	void SetAt(int nIndex,const DATA& newElement);
+	void SetAtGrow(int nIndex, const DATA& newElememt);
 	void SetSize(int nNewSize);
 	const DATA* GetData() const
 	{
@@ -46,11 +66,34 @@ public:
 	{
 		return m_pData;
 	}
+
+	CArray& operator=(const CArray& array);
+	CArray operator+(const CArray& array)const;
+	CArray& operator+=(const CArray& array);
+	DATA& operator[](int nIndex)
+	{
+		return m_pData[nIndex];
+	}
 private:
 	int m_nMaxSize;//资源个数
 	int m_nCount;//有效个数
 	DATA* m_pData;
 };
+
+
+
+template<class DATA>
+CArray<DATA>::CArray(const CArray& array)
+{
+	 m_nCount = 0;
+	 m_nMaxSize=array.GetSize();
+	 m_pData = new DATA[m_nMaxSize];
+	 int nCount = array.GetCount();
+	 for (int i = 0; i < nCount; i++)
+		 Add(array.GetAt(i));
+
+}
+
 
 template<class DATA>
 CArray<DATA>::CArray()
@@ -78,11 +121,45 @@ void CArray<DATA>::Add(const DATA& data)
 		DATA* p = new DATA[2 * m_nMaxSize];
 		m_nMaxSize = 2 * m_nMaxSize;
 		memcpy(p,m_pData,m_nCount*sizeof(DATA));
+		delete []m_pData;
 		p[m_nCount++] = data;
 		m_pData = p;
 	}	
 }
 
+
+
+template<class DATA>
+int CArray<DATA>::Append(const CArray& src)
+{
+	int nCount = src.GetCount();
+	for (int i = 0; i < nCount; i++)
+		Add(src.GetAt(i));
+	return GetCount() - nCount - 1;
+}
+
+
+template<class DATA>
+void CArray<DATA>::Copy(const CArray& src)
+{
+	RemoveAll();
+	int nCount = src.GetCount();
+	for (int i = 0; i < nCount; i++)
+		Add(src.GetAt(i));
+}
+
+
+template<class DATA>
+void CArray<DATA>::FreeExtra()
+{
+	if (m_nCount == m_nMaxSize)
+		return;
+	DATA* p = new DATA[m_nCount];
+	memcpy(p, m_pData, m_nCount * sizeof(DATA));
+	delete[]m_pData;
+	m_pData = p;
+	m_nMaxSize = m_nCount;
+}
 
 template<class DATA>
 void CArray<DATA>::SetAt(int nIndex,const DATA& newElement)
@@ -90,6 +167,32 @@ void CArray<DATA>::SetAt(int nIndex,const DATA& newElement)
 	if (nIndex > m_nCount - 1 || nIndex < 0)
 		return;
 	m_pData[nIndex] = newElement;
+}
+
+template<class DATA>
+void CArray<DATA>::SetAtGrow(int nIndex, const DATA& newElement)
+{
+	if (nIndex < m_nMaxSize)
+	{
+		if (nIndex >= m_nCount)
+		{
+			for (int i = 0; i < nIndex - m_nCount; i++)
+				m_pData[m_nCount + i] = 0;
+			m_nCount = nIndex + 1;
+		}		    
+		m_pData[nIndex] = newElement;
+	}
+	else
+	{
+		m_nMaxSize = nIndex + 1;
+		DATA* p = new DATA[m_nMaxSize]{ 0 };
+		memcpy(p, m_pData, m_nCount);
+		p[nIndex] = newElement;
+		m_nCount = nIndex+1;
+		delete []m_pData;
+		m_pData = p;
+	}
+
 }
 
 
@@ -101,39 +204,65 @@ void CArray<DATA>::SetSize(int newSize)
 	else
 	{
 	m_nMaxSize = newSize;
-	DATA* p = new DATA[newSize];
+	DATA* p = new DATA[m_nMaxSize]{0};
 	memcpy(p,m_pData,m_nCount*sizeof(DATA));
+	m_nCount = m_nMaxSize;
 	delete []m_pData;
 	m_pData = p;
     }
 }
 
 
-//template<class DATA>
-//void CArray<DATA>::InsertAt(int Index,const DATA& data,int nCount)
-//{
-//	if (Index < m_nCount)
-//	{
-//		if (m_nCount + nCount <= m_nMaxSize)
-//			memmove(m_pData+Index+nCount,m_pData+Index,(m_nCount-Index)*sizeof(DATA));
-//		else
-//		{
-//			m_nMaxSize = (m_nCount + nCount) * 2
-//			DATA* p = new DATA[m_nMaxSize];
-//			memcpy(p,m_pData,Index*sizeof(DATA));
-//			memcpy(p+Index+nCount,m_pData+Index,(m_nCount-Index)*sizeof(DATA));
-//			m_pData = p;
-//		}
-//		while (nCount--)
-//			m_pData[Index+nCount] = data;
-//	}
-//	else
-//	{
-//
-//
-//	}
-//
-//}
+template<class DATA>
+void CArray<DATA>::InsertAt(int Index,const DATA& data,int nCount)
+{
+	if (Index < m_nCount)
+	{
+		if (m_nCount + nCount <= m_nMaxSize)
+		{
+			memmove(m_pData+Index+nCount,m_pData+Index,(m_nCount-Index)*sizeof(DATA));
+			for (int i = 0; i < nCount; i++)
+				m_pData[Index + i] = data;
+			
+		}
+		else
+		{
+			m_nMaxSize = m_nCount + nCount;
+			DATA* p = new DATA[m_nMaxSize];
+			memcpy(p,m_pData,Index*sizeof(DATA));
+			for (int i = 0; i < nCount; i++)
+				p[Index + i] = data;
+			memcpy(p + Index + nCount, m_pData + Index, (m_nCount - Index)*sizeof(DATA));
+			delete []m_pData;
+			m_pData = p;
+		}
+		m_nCount += nCount;
+	}
+	else 
+	{
+		if (Index + nCount <= m_nMaxSize)
+		{
+			for (int i = 0; i < Index-m_nCount; i++)
+				m_pData[m_nCount + i] = { 0 };
+			for (int i = 0; i < nCount; i++)
+				m_pData[Index+ i] = data;
+			
+		}
+		else
+		{
+			m_nMaxSize = Index + nCount;
+			DATA* p = new DATA[m_nMaxSize];
+			memcpy(p,m_pData,m_nCount*sizeof(DATA));
+			for (int i = 0; i < Index-m_nCount; i++)
+				p[m_nCount + i] = 0 ;
+			for (int i = 0; i < nCount; i++)
+				p[Index + i] = data;
+			delete []m_pData;
+			m_pData = p;
+		}
+		m_nCount = Index + nCount;
+	}
+}
 
 
 template<class DATA>
@@ -146,8 +275,38 @@ void CArray<DATA>::RemoveAt(int Index,int nCount=1)
 	if (Index + nCount < m_nCount)
 	{
 		memcpy(m_pData + Index, m_pData + Index + nCount, (m_nCount - Index - nCount) * sizeof(DATA));
-		m_nCount = -nCount;
+		m_nCount -= nCount;
 	}
 	else
 		m_nCount = Index;
 }
+
+template<class DATA>
+CArray<DATA>& CArray<DATA>::operator=(const CArray<DATA>& array)
+{
+	RemoveAll();
+	int nCount = array.GetCount();
+	for (int i=0;i<nCount;i++)
+		Add(array.GetAt(i));
+	return *this;
+}
+
+template<class DATA>
+CArray<DATA> CArray<DATA>::operator+(const CArray<DATA>& array)const
+{
+	CArray temp = *this;
+	int nCount = array.GetCount();
+	for (int i = 0; i < nCount; i++)
+		temp.Add(array.GetAt(i));
+	return temp;
+}
+
+template<class DATA>
+CArray<DATA>& CArray<DATA>::operator+=(const CArray<DATA>& array)
+{
+	int nCount = array.GetCount();
+	for (int i = 0; i < nCount; i++)
+		Add(array.GetAt(i));
+	return *this;
+}
+
