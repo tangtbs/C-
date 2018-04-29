@@ -17,15 +17,15 @@ public:
 		m_pTail = NULL;
 		m_nCount = 0;
 	}
-
-
+	//深拷贝构造
+	Clist(const Clist&list);
+	Clist& operator=(const Clist&list);
+	Clist operator+(const Clist&list);
+	Clist& operator+=(const Clist&list);
    ~Clist()
 	{
 		RemoveAll();
 	}
-	SNode* m_pHead;
-	SNode* m_pTail;
-	size_t m_nCount;
 	//头添加
 	void AddHead(const DATA& data);
 	//尾添加
@@ -82,8 +82,63 @@ public:
 	{
 		return m_nCount;
 	}
+	SNode* m_pHead;
+	SNode* m_pTail;
+	size_t m_nCount;
 };
 
+
+template<class DATA>
+Clist<DATA>::Clist(const Clist& list)
+{
+	SNode* pl = list.m_pHead;
+	m_pHead = NULL;
+	m_nCount = 0;
+	while (pl)
+	{
+		AddTail(pl->data);
+		pl = pl->pNext;
+	}
+}
+
+
+template<class DATA>
+Clist<DATA>& Clist<DATA>::operator =(const Clist& list)
+{
+	this->RemoveAll();
+	SNode* pl = list.m_pHead;
+	while (pl)
+	{
+		AddTail(pl->data);
+		pl = pl->pNext;
+	}
+	return *this;
+}
+template<class DATA>
+Clist<DATA> Clist<DATA>::operator+(const Clist&list)
+{
+	Clist temp = *this;
+	SNode* pl = list.m_pHead;
+	while (pl)
+	{
+		temp.AddTail(pl->data);
+		pl = pl->pNext;
+	}
+	return temp;
+}
+
+
+template<class DATA>
+Clist<DATA>& Clist<DATA>::operator+=(const Clist&list)
+{
+	SNode* pl = list.m_pHead;
+	while (pl)
+	{
+		AddTail(pl->data);
+		pl = pl->pNext;
+	}
+	return *this;
+}
 
 //头添加
 template<class DATA>

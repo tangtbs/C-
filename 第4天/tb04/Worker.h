@@ -47,6 +47,8 @@ private:
 	void Login();
 	void CreateUser();
 	void Password();
-	
+	void RootPassword();
+	// √‹¬Î ‰»Î
+	void PasswordInput(char* p);
 };
 

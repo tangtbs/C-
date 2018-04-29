@@ -58,6 +58,7 @@ int CWorker::Menu()
 	system("cls");
 	int n = 0;
 	cout << "\t\t\t\t\t\t员工信息管理系统" << endl << endl;
+	cout << "\t\t\t\t\t\t当前用户【"<<User.sName<<"】" << endl;
 	cout << "\t\t\t\t\t\t1、浏览员工信息" << endl;
 	cout << "\t\t\t\t\t\t2、添加员工信息" << endl;
 	cout << "\t\t\t\t\t\t3、删除员工信息" << endl;
@@ -277,23 +278,19 @@ void CWorker::Modify()
 void CWorker::Password()
 {
 	system("cls");
-	int n = 5;
-	int  Index = SearchbyName(User.sName);
-	if (Index==-1)
-	{
-		cout << "root用户密码不能在此修改" << endl;
-		system("pause");
-		return;
-	}
 	cout << "你选择了修改密码" << endl;
 	cout << "请输入原始密码:";
+	if (!strcmp(User.sName, "root"))
+	{
+		RootPassword();
+		return;
+	}
+	int n = 5;
+	int  Index = SearchbyName(User.sName);
 	do
 	{
 		char s[20] = { 0 };
-		int i = 0;
-		for (; (s[i] = _getch()) != '\r'; i++)
-			putchar('*');
-		s[i] = 0;
+		PasswordInput(s);
 		if (!strcmp(m_list.GetAt(Index).sPasword, s))
 			break;
 		cout << endl << "密码错误，请重新输入：";
@@ -309,15 +306,9 @@ void CWorker::Password()
 		char s1[20] = { 0 };
 		char s2[20] = { 0 };
 		cout << endl << "请输入新的密码:";
-		int i = 0;
-		for (; (s1[i] = _getch()) != '\r'; i++)
-			putchar('*');
-		s1[i] = 0;
+		PasswordInput(s1);
 		cout << endl << "请再次输入密码:";
-		int j = 0;
-		for (; (s2[j] = _getch()) != '\r'; j++)
-			putchar('*');
-		s2[j] = 0;
+		PasswordInput(s2);
 		if (!strcmp(s1, s2))
 		{
 			strcpy(m_list.GetAt(Index).sPasword, s1);
@@ -325,7 +316,7 @@ void CWorker::Password()
 		}
 		cout << endl << "两次输入的密码不一致" << endl;
 	}
-	cout << "修改成功" << endl;
+	cout <<endl<< "修改成功" << endl;
 	system("pause");
 }
 
@@ -386,16 +377,35 @@ void CWorker::Save()
 	if (!fp)
 	{
 		cout << "打开文件失败" << endl;
+		system("pause");
 		return;
 	}
 	for(int i=0;i<m_list.GetCount();i++)
 		fwrite(&m_list.GetAt(i), sizeof(SWorker), 1, fp);
 	fclose(fp);
+	FILE* fp1 = fopen("su.r", "w");
+	if (!fp1)
+	{
+		cout << "打开文件\"su.r\"失败" << endl;
+		system("pause");
+		return;
+	}
+	fwrite(Super.sPasword,20,1,fp1);
+	fclose(fp1);
 }
 
 //加载
 void CWorker::Load()
 {
+	FILE*fp1= fopen("su.r","r");
+	if (!fp1)
+	{
+		cout << "读取文件失败" << endl;
+		system("pause");
+		return;
+	}
+	fread(Super.sPasword,20,1,fp1);
+	fclose(fp1);
 	FILE* fp = fopen("Worker.tb", "r");
 	if (!fp)
 		return;
@@ -428,10 +438,7 @@ void CWorker::Login()
 		cout << "User:";
 		cin >> name;
 		cout << "password:";
-		int i = 0;
-		for (; (password[i] = _getch()) != '\r'; i++)
-			putchar('*');
-		password[i] = 0;
+		PasswordInput(password);
 		Index = SearchbyName(name);
 		if (Index!=-1 && !strcmp(m_list.GetAt(Index).sPasword, password) || !strcmp(name, Super.sName) && !strcmp(password, Super.sPasword))
 		{
@@ -488,17 +495,9 @@ void CWorker::CreateUser()
 			continue;
 		}
 		cout << "请输入密码:";
-		while ((*s = _getch()) != '\r')
-		{
-			putchar('*');
-			s++;
-		}
-		*s = 0;
+		PasswordInput(s);
 		cout << endl << "请再次输入密码：";
-		int i = 0;
-		for (; (temp[i] = _getch()) != '\r'; i++)
-			putchar('*');
-		temp[i] = 0;
+		PasswordInput(temp);
 		if (!strcmp(temp, data.sPasword))
 		{
 			data.nNumb = 1000 + m_list.GetCount() + 1;
@@ -511,4 +510,62 @@ void CWorker::CreateUser()
 		}
 		cout << endl << "两次输入的密码不同" << endl;
 	}
+}
+
+
+// 密码输入
+void CWorker::PasswordInput(char* password)
+{
+	int i = 0;
+	char c;
+	while ((c = _getch()) != '\r')
+	{
+		if (c == '\b')
+		{
+			putchar('\b');
+			putchar(' ');
+			putchar('\b');
+			i--;
+			continue;
+		}
+		putchar('*');
+		password[i++] = c;
+	}
+	password[i] = 0;
+}
+
+void CWorker::RootPassword()
+{
+	int n = 5;
+	do
+	{
+		char s[20] = { 0 };
+		PasswordInput(s);
+		if (!strcmp(User.sPasword, s))
+			break;
+		cout << endl << "密码错误，请重新输入：";
+	} while (n--);
+	if (n<0)
+	{
+		cout << "修改失败" << endl;
+		system("pause");
+		return;
+	}
+	while (1)
+	{
+		char s1[20] = { 0 };
+		char s2[20] = { 0 };
+		cout << endl << "请输入新的密码:";
+		PasswordInput(s1);
+		cout << endl << "请再次输入密码:";
+		PasswordInput(s2);
+		if (!strcmp(s1, s2))
+		{
+			strcpy(Super.sPasword, s1);
+			break;
+		}
+		cout << endl << "两次输入的密码不一致" << endl;
+	}
+	cout << endl << "修改成功" << endl;
+	system("pause");
 }
