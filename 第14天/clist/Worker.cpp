@@ -77,6 +77,7 @@ void CWorker::Browse()
 {
 	system("cls");
 	int n = 0;
+	bool(*pFun[3])(SWorker&, SWorker&) = {SortbyNumb,SortbyName,SortbySala};
 	cout << "你选择了\"浏览员工信息\"" << endl;
 	while (n = BrowseMenu())
 	{
@@ -85,7 +86,8 @@ void CWorker::Browse()
 		case 1:
 		case 2:
 		case 3:
-			PrintAll(Sort(n));
+			m_list.sort(pFun[n - 1]);
+			PrintAll();
 			break;
 		default:
 			cout << "输入错误" << endl;
@@ -106,19 +108,20 @@ int CWorker::BrowseMenu()
 }
 
 
-void CWorker::PrintAll(SWorker**pp)
+void CWorker::PrintAll( )
 {
-
-	if (!pp)
+	int size = m_list.size();
+	list<SWorker>::iterator it = m_list.begin();
+	if (!size)
 	{
 		cout << "系统中无数据记录" << endl;
 		return;
 	}
 	cout << "\t\t\t\t\t\t姓名\t" << "工号\t" << "工资" << endl << endl;
-	while (*pp)
+	while (size--)
 	{
-		cout << "\t\t\t\t\t\t" << (*pp)->sName << "\t" << (*pp)->nNumb << "\t" << (*pp)->fSala << endl;
-		pp++;
+		cout << "\t\t\t\t\t\t" << it->sName << "\t" << it->nNumb << "\t" << it->fSala << endl;
+		it++;
 	}
 	system("pause");
 }
@@ -197,18 +200,19 @@ void CWorker::Delete()
 	cout << "你选择了\"删除数据\"" << endl;
 	cout << "请输入要删除的工号：" << endl;
 	cin >> n;
-	const SWorker& data = SearchbyNumb(n);
-	if (!data.nNumb)
+	list<SWorker>::iterator it;
+    SearchbyNumb(n,it);
+	if (it==m_list.end())
 	{
 		cout << "该信息不存在" << endl;
 		system("pause");
 		return;
 	}
-	Printone(data);
+	Printone(it);
 	cout << "确定要删除这条数据吗?(Y/N)" << endl;
 	if (toupper(_getch()) == 'Y')
 	{
-		m_list.remove(data);
+		m_list.erase(it);
 		cout << "删除成功" << endl;
 	}
 	else
@@ -216,6 +220,14 @@ void CWorker::Delete()
 	system("pause");
 
 }
+
+//bool CWorker::RemoveIf(const SWorker& data)
+//{
+//	/*int numb = 0;
+//	cout << "请输入要删除的工号:";
+//	cin >> numb;*/
+//	return data.nNumb == 1001;
+//}
 
 
 //查找数据
@@ -226,23 +238,24 @@ void CWorker::Search()
 	cout << "你选择了\"查找数据\"" << endl;
 	cout << "请输入工号：";
 	cin >> numb;
-	SWorker& data = SearchbyNumb(numb);
-	if (!data.bPower)
+	list<SWorker>::iterator it;
+	SearchbyNumb(numb,it);
+	if (it==m_list.end())
 	{
 		cout << "该信息不存在" << endl;
 		system("pause");
 		return;
 	}
-	Printone(data);
+	Printone(it);
 	system("pause");
 	return;
 }
 
 
-void CWorker::Printone(const SWorker& data)
+void CWorker::Printone(const list<SWorker>::iterator& it)
 {
 	cout << "\t\t\t\t\t\t姓名\t工号\t工资" << endl << endl;
-	cout << "\t\t\t\t\t\t" << data.sName << "\t" << data.nNumb << "\t" << data.fSala << endl;
+	cout << "\t\t\t\t\t\t" << it->sName << "\t" << it->nNumb << "\t" << it->fSala << endl;
 }
 
 
@@ -260,27 +273,28 @@ void CWorker::Modify()
 	cout << "你选择了\"修改数据\"" << endl;
 	cout << "请输入一个工号：" << endl;
 	cin >> numb;
-	SWorker& data= SearchbyNumb(numb);
-	if (!data.fSala)
+	list<SWorker>::iterator it;
+	SearchbyNumb(numb,it);
+	if (it==m_list.end())
 	{
 		cout << "该信息不存在" << endl;
 		system("pause");
 		return;
 	}
-	Printone(data);
+	Printone(it);
 	cout << "确定修改以上信息吗？(Y/N)";
 	if (toupper(_getch()) == 'Y')
 	{
 		getchar();
 		cout << endl;
 		cout << "请输入新的工号:";
-		cin >> data.nNumb;
+		cin >> it->nNumb;
 		cout << "请输入新的姓名:";
-		cin >> data.sName;
+		cin >> it->sName;
 		cout << "请输入新的薪资:";
-		cin >> data.fSala;
+		cin >> it->fSala;
 		cout << "是否为该用户添加管理员权限（Y/N）？";
-		toupper(_getch()) == 'Y' ? data.bPower = true : false;
+		toupper(_getch()) == 'Y' ? it->bPower = true : false;
 		cout << endl << "修改成功" << endl;
 	}
 	else
@@ -301,13 +315,14 @@ void CWorker::Password()
 		RootPassword();
 		return;
 	}
-	SWorker& data = SearchbyName(User.sName);
+	list<SWorker>::iterator it;
+	SearchbyName(User.sName,it);
 	do
 	{
 		
 		char s[20] = { 0 };
 		PasswordInput(s);
-		if (!strcmp(data.sPasword, s))
+		if (!strcmp(it->sPasword, s))
 			break;
 		cout << endl << "密码错误，请重新输入：";
 	} while (n--);
@@ -327,7 +342,7 @@ void CWorker::Password()
 		PasswordInput(s2);
 		if (!strcmp(s1, s2))
 		{
-			strcpy(data.sPasword, s1);
+			strcpy(it->sPasword, s1);
 			break;
 		}
 		cout << endl << "两次输入的密码不一致" << endl;
@@ -336,80 +351,46 @@ void CWorker::Password()
 	system("pause");
 }
 
-SWorker** CWorker::Sort(int n)
-{
-	SWorker** pp = new SWorker*[m_list.size() + 1];
-	SWorker**pp1 = pp;
-	list<SWorker>::iterator it = m_list.begin();
-	list<SWorker>::iterator it_end = m_list.end();
-	if (!m_list.size())
-		return NULL;
-	while(it!=it_end)
-	{
-		*pp1++ =&*it++;
-	}
-	*pp1 = NULL;
-	pp1 = pp;
-	while (*pp1)
-	{
-		SWorker**mp = pp1;
-		SWorker**pp2 = pp1 + 1;
-		while (*pp2)
-		{
-			if (Sortby(**pp2, **mp, n)<0)
-				mp = pp2;
-			pp2++;
-		}
-		if (mp != pp1)
-		{
-			SWorker*temp = *mp;
-			*mp = *pp1;
-			*pp1 = temp;
-		}
-		pp1++;
-	}
-	return pp;
-}
-int CWorker::Sortby(SWorker&m1, SWorker&m2, int n)
-{
-	switch (n)
-	{
-	case 1:
-		return m1.nNumb - m2.nNumb;
-	case 2:
-		return strcmp(m1.sName, m2.sName);
-	case 3:
-		return m1.fSala - m2.fSala < 0 ? 1 : -1;
 
-	}
+bool CWorker::SortbyNumb(SWorker&m1, SWorker&m2)
+{
+	return m1.nNumb - m2.nNumb<=0;
 }
 
-
-SWorker CWorker::SearchbyNumb(int numb)
+bool CWorker::SortbyName(SWorker&m1, SWorker&m2)
 {
-	list<SWorker>::iterator it = m_list.begin();
+	
+	return strcmp(m1.sName, m2.sName)<=0;
+}
+
+bool CWorker::SortbySala(SWorker&m1, SWorker&m2)
+{
+	return m1.fSala - m2.fSala >0;
+}
+
+void  CWorker::SearchbyNumb(int numb,list<SWorker>::iterator& it)
+{
+     it = m_list.begin();
 	list<SWorker>::iterator it_end = m_list.end();
 	while(it!=it_end)
 	{
 		if (it->nNumb == numb)
-			return *it;
+			return;
 		it++;
 	}
-	return SWorker();
 }
 
-SWorker CWorker::SearchbyName(char * s)
+void CWorker::SearchbyName(char * s, list<SWorker>::iterator& it)
 {
 
-	list<SWorker>::iterator it = m_list.begin();
+	it = m_list.begin();
 	list<SWorker>::iterator it_end = m_list.end();
 	while(it!=it_end)
 	{
 		if (!strcmp(it->sName, s))
-			return *it;
+			return ;
 		it++;
 	}
-	return SWorker();
 }
 
 // 保存
@@ -465,11 +446,11 @@ void CWorker::Login()
 		cin >> name;
 		cout << "password:";
 		PasswordInput(password);
-		SWorker& data=SearchbyName(name);
-		if (data.fSala && !strcmp(data.sPasword, password) || !strcmp(name, Super.sName) && !strcmp(password, Super.sPasword))
+		SearchbyName(name,it);
+		if (it!=m_list.end() && !strcmp(it->sPasword, password) || !strcmp(name, Super.sName) && !strcmp(password, Super.sPasword))
 		{
-			if (data.fSala)
-				User = data;
+			if (it != m_list.end())
+				User = *it;
 			else
 				User = Super;
 			cout << endl << "登入成功" << endl;
@@ -506,7 +487,7 @@ void CWorker::Into()
 void CWorker::CreateUser()
 {
 	system("cls");
-
+	list<SWorker>::iterator it;
 	cout << "你选择了\"用户注册\"" << endl;
 	while (1)
 	{
@@ -515,7 +496,8 @@ void CWorker::CreateUser()
 		char temp[20] = { 0 };
 		cout << "请输入用户名：";
 		cin >> data.sName;
-		if (SearchbyName(data.sName).nNumb || !strcmp(data.sName, Super.sName))
+		SearchbyName(data.sName, it);
+		if (it!=m_list.end()|| !strcmp(data.sName, Super.sName))
 		{
 			cout << "用户名已存在,请重新输入" << endl;
 			continue;

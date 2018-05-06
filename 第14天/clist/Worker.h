@@ -38,7 +38,7 @@ private:
 	int Menu();
 	// //浏览
 	void Browse();
-	void PrintAll(SWorker**);
+	void PrintAll();
 	// //添加数据
 	void Input();
 	void Add(int n);
@@ -46,14 +46,15 @@ private:
 	void Delete();
 	// //查找数据
 	void Search();
-	void Printone(const SWorker& data);
+	void Printone(const list<SWorker>::iterator& it);
 	// 删除数据
 	void Modify();
 	int BrowseMenu();
-	SWorker** Sort(int n);
-	int Sortby(SWorker&, SWorker&, int n);
-	SWorker SearchbyNumb(int numb);
-	SWorker SearchbyName(char* s);
+	static bool CWorker::SortbyNumb(SWorker&m1, SWorker&m2);
+	static bool CWorker::SortbyName(SWorker&m1, SWorker&m2);
+	static bool CWorker::SortbySala(SWorker&m1, SWorker&m2);
+	void SearchbyNumb(int numb,list<SWorker>::iterator& it);
+	void SearchbyName(char* s,list<SWorker>::iterator& it);
 	void Save();
 	void Load();
 	void Login();
@@ -62,5 +63,6 @@ private:
 	void RootPassword();
 	// 密码输入
 	void PasswordInput(char* p);
+	/*static bool RemoveIf(const SWorker& data);*/
 };
 
